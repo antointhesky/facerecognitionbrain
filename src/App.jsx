@@ -1,18 +1,16 @@
-import React, { useState } from "react";
-import "./App.css";
+import { useState } from "react";
+import axios from "axios";
+import ParticlesBg from "particles-bg";
+import FaceRecognition from "./components/FaceRecognition/FaceRecognition";
 import Navigation from "./components/Navigation/Navigation";
 import Signin from "./components/Signin/Signin";
 import Register from "./components/Register/Register";
 import Logo from "./components/Logo/Logo";
 import ImageLinkForm from "./components/ImageLinkForm/ImageLinkForm";
 import Rank from "./components/Rank/Rank";
-import FaceRecognition from "./components/FaceRecognition/FaceRecognition";
-import ParticlesBg from "particles-bg";
-import Clarifai from "clarifai";
+import "./App.css";
 
-const app = new Clarifai.App({
-  apiKey: "21f4c30fffbd409ba8148c31f2663f66",
-});
+const CLARIFAI_API_KEY = "21f4c30fffbd409ba8148c31f2663f66";
 
 const App = () => {
   const [input, setInput] = useState("");
@@ -40,13 +38,14 @@ const App = () => {
 
   const calculateFaceLocation = (data) => {
     if (!data?.outputs) return;
-    const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
+    const clarifaiFace =
+      data.outputs[0].data.regions[0].region_info.bounding_box;
     const image = document.getElementById("inputimage");
     if (!image) return;
-    
+
     const width = Number(image.width);
     const height = Number(image.height);
-    
+
     return {
       leftCol: clarifaiFace.left_col * width,
       topRow: clarifaiFace.top_row * height,
@@ -67,17 +66,34 @@ const App = () => {
     setImageUrl(input);
 
     try {
-      const response = await app.models.predict("face-detection", input);
-      if (response) {
-        const res = await fetch("http://localhost:3000/image", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: user.id }),
+      const response = await axios.post(
+        "https://api.clarifai.com/v2/models/face-detection/outputs",
+        {
+          user_app_id: { user_id: "clarifai", app_id: "main" },
+          inputs: [{ data: { image: { url: input } } }],
+        },
+        {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Key ${CLARIFAI_API_KEY}`,
+          },
+        }
+      );
+
+      const data = response.data;
+
+      if (data) {
+        const res = await axios.put("http://localhost:3000/image", {
+          id: user.id,
         });
-        const count = await res.json();
-        setUser((prevUser) => ({ ...prevUser, entries: count }));
+
+        setUser((prevUser) => ({
+          ...prevUser,
+          entries: res.data,
+        }));
       }
-      displayFaceBox(calculateFaceLocation(response));
+
+      displayFaceBox(calculateFaceLocation(data));
     } catch (error) {
       console.error("Error detecting face:", error);
     }
@@ -107,7 +123,10 @@ const App = () => {
         <>
           <Logo />
           <Rank name={user.name} entries={user.entries} />
-          <ImageLinkForm onInputChange={onInputChange} onButtonSubmit={onButtonSubmit} />
+          <ImageLinkForm
+            onInputChange={onInputChange}
+            onButtonSubmit={onButtonSubmit}
+          />
           <FaceRecognition box={box} imageUrl={imageUrl} />
         </>
       ) : route === "signin" ? (
@@ -120,7 +139,3 @@ const App = () => {
 };
 
 export default App;
-
-
-
-
