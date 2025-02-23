@@ -10,8 +10,6 @@ import ImageLinkForm from "./components/ImageLinkForm/ImageLinkForm";
 import Rank from "./components/Rank/Rank";
 import "./App.css";
 
-const CLARIFAI_API_KEY = "21f4c30fffbd409ba8148c31f2663f66";
-
 const App = () => {
   const [input, setInput] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -64,26 +62,14 @@ const App = () => {
 
   const onButtonSubmit = async () => {
     setImageUrl(input);
-
     try {
-      const response = await axios.post(
-        "https://api.clarifai.com/v2/models/face-detection/outputs",
-        {
-          user_app_id: { user_id: "clarifai", app_id: "main" },
-          inputs: [{ data: { image: { url: input } } }],
-        },
-        {
-          headers: {
-            Accept: "application/json",
-            Authorization: `Key ${CLARIFAI_API_KEY}`,
-          },
-        }
-      );
-
+      const response = await axios.post("http://localhost:3001/imageurl", {
+        imageUrl: input,
+      });
       const data = response.data;
 
       if (data) {
-        const res = await axios.put("http://localhost:3000/image", {
+        const res = await axios.put("http://localhost:3001/image", {
           id: user.id,
         });
 

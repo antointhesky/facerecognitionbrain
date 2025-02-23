@@ -44,6 +44,7 @@ const Register = ({ loadUser, onRouteChange }) => {
                 id="name"
                 onChange={onInputChange}
               />
+       
             </div>
             <div className="mt3">
               <label className="db fw6 lh-copy f6" htmlFor="email">
