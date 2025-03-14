@@ -13,3 +13,7 @@ Start the Client: npm run dev
 
 ## ⚠ Important: ## 
 The client requires the SmartBrain Server (facerecognitionbrain-api) to be running for authentication and face detection to function correctly.
+
+For testing purposes, you can log in using the following dummy credentials:
+Email: emma@gmail.com
+Password: test123
